@@ -3,7 +3,7 @@ var React = require('react'),
 	Note = require('../../components/Note');
 
 module.exports = Field.create({
-	
+
 	shouldCollapse: function() {
 		return this.props.collapse && !this.hasExisting();
 	},
@@ -38,20 +38,23 @@ module.exports = Field.create({
 			removeExisting: false,
 			localSource:    null,
 			origin:         false,
-			action:         null
+			action:         null,
+			previewUrl: null
 		});
 	},
 
 	fileChanged: function (event) {//eslint-disable-line no-unused-vars
 		this.setState({
-			origin: 'local'
+			origin: 'local',
+			previewUrl: null
 		});
 	},
 
 	removeFile: function (e) {
 		var state = {
 			localSource: null,
-			origin: false
+			origin: false,
+			previewUrl: null
 		};
 
 		if (this.hasLocal()) {
@@ -97,6 +100,8 @@ module.exports = Field.create({
 		}
 	},
 
+
+
 	renderFileDetails: function (add) {
 		var values = null;
 
@@ -124,7 +129,7 @@ module.exports = Field.create({
 				</div>
 			);
 		} else if (this.state.origin === 'cloudinary') {
-			return ( 
+			return (
 				<div className='select-queued pull-left'>
 					<div className='alert alert-success'>File selected from Cloudinary</div>
 				</div>
@@ -183,6 +188,68 @@ module.exports = Field.create({
 		);
 	},
 
+	renderPreview: function() {
+
+		var self = this;
+
+		function getImagePath() {
+
+			var url;
+
+			if (self.refs && self.refs.fileField && self.refs.fileField.getDOMNode().files[0]) {
+
+				var file = self.refs.fileField.getDOMNode().files[0];
+
+    		if (!file.preview && !file.parsing) {
+	        var reader = new FileReader();
+	        file.parsing = true;
+	        reader.onload = function (e) {
+	            file.preview = e.target.result;
+	            var url = e.target.result;
+					    if (url && url.toLowerCase().match(/jpg|jpeg|png|gif|tiff|webp|image/)) {
+					    	return self.setState({
+					    		previewUrl: url
+					    	});
+					    }
+	        }
+	        reader.readAsDataURL(file);
+    		} else {
+    			url = file.preview;
+    		}
+	    } else if (self.props.value && self.props.value.filename) {
+	    	url = '/' + self.props.value.path.replace('public/', '') + '/' + self.props.value.filename;
+	    }
+
+	    if (url && url != self.state.previewUrl && url.toLowerCase().match(/jpg|jpeg|png|gif|tiff|webp/)) {
+	    	self.setState({
+	    		previewUrl: url
+	    	});
+	    }
+	  }
+
+	  setTimeout(function () { getImagePath(); }, 0);
+
+		var previewStyles = {};
+	  if (this.state.previewUrl) {
+	  	previewStyles = {
+	  		width: "200px",
+	  		height: "200px",
+	  		backgroundPosition: "50% 50%",
+	  		backgroundRepeat: 'no-repeat',
+	  		backgroundSize: "contain",
+	  		backgroundImage: "url(" + this.state.previewUrl + ")"
+			}
+		}
+
+		return (
+			<div key={this.props.path + '_preview'} className='file-preview'>
+				{this.state.previewUrl &&
+					(<div style={previewStyles}></div>)
+				}
+			</div>
+		);
+	},
+
 	renderUI: function() {
 		var container = [],
 			body = [],
@@ -209,10 +276,10 @@ module.exports = Field.create({
 		return (
 			<div className='field field-type-localfile'>
 				<label className='field-label'>{this.props.label}</label>
-	
 				{this.renderFileField()}
 				{this.renderFileAction()}
-	
+				{this.renderPreview()}
+
 				<div className={fieldClassName}>
 					<div className='file-container'>{container}</div>
 					{body}
@@ -221,5 +288,5 @@ module.exports = Field.create({
 			</div>
 		);
 	}
-	
+
 });
