@@ -166,6 +166,11 @@ module.exports = Field.create({
 		});
 	},
 
+	onValueClick: function (obj, event) {
+
+		window.location = '/keystone/' + this.props.refList.path + '/' + obj.value;
+	},
+
 	renderValue: function() {
 		if (!this.state.ready) {
 			return this.renderLoadingUI();
@@ -198,7 +203,7 @@ module.exports = Field.create({
 			);
 		}
 
-		body.push(<Select multi={this.props.many} onChange={this.updateValue} name={this.props.path} asyncOptions={this.getOptions} value={this.state.expandedValues} />);
+		body.push(<Select multi={this.props.many} onOptionLabelClick={this.onValueClick} onChange={this.updateValue} name={this.props.path} asyncOptions={this.getOptions} value={this.state.expandedValues} />);
 
 		return body;
 	}

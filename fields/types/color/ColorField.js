@@ -11,7 +11,6 @@ module.exports = Field.create({
 			newValue = '#' + newValue;
 		}
 		if (newValue === this.props.value) return;
-		console.log(newValue);
 		this.props.onChange({
 			path: this.props.path,
 			value: newValue
